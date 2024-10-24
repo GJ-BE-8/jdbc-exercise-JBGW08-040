@@ -4,6 +4,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,7 +22,8 @@ class BasicConnectionPoolTest {
     @BeforeAll
     static void setUp() {
         //todo#0 - jdbcUrl, username, password를 설정하세요
-        basicConnectionPool = new BasicConnectionPool(com.mysql.cj.jdbc.Driver.class.getName(),"","","",5);
+        basicConnectionPool = new BasicConnectionPool(com.mysql.cj.jdbc.Driver.class.getName(),"jdbc:mysql://133.186.241.167:3306/nhn_academy_40","nhn_academy_40","J/_-W7)ZYB4URo0B",5);
+
     }
 
     @AfterAll
@@ -65,7 +67,6 @@ class BasicConnectionPoolTest {
         Assertions.assertAll(
                 ()->Assertions.assertEquals(basicConnectionPool.getUsedConnectionSize(),5)
         );
-
     }
 
     @Test
