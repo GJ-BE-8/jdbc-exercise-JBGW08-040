@@ -222,7 +222,6 @@ class BankServiceTest {
 
         Mockito.verify(accountRepository,Mockito.times(1)).countByAccountNumber(any(),anyLong());
         Mockito.verify(accountRepository,Mockito.times(1)).deleteByAccountNumber(any(),anyLong());
-
     }
 
 }
