@@ -13,12 +13,44 @@ public class AccountRepositoryImpl implements AccountRepository {
 
     public Optional<Account> findByAccountNumber(Connection connection, long accountNumber){
         //todo#1 계좌-조회
-        return Optional.empty();
+        Account account = null;
+        String sql = "SELECT * FROM jdbc_account WEHRE account_number=?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ){
+            preparedStatement.setLong(1,accountNumber);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()){
+                account = new Account(
+                        resultSet.getLong(resultSet.getString("account_number")),
+                        resultSet.getString("name"),
+                        resultSet.getLong("balance")
+                        );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return Optional.ofNullable(account);
     }
 
     @Override
     public int save(Connection connection, Account account) {
         //todo#2 계좌-등록, executeUpdate() 결과를 반환 합니다.
+        int result = 0;
+        String sql = "SELECT * FROM jdbc_account WEHRE account_number=?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ){
+            preparedStatement.setLong(1,accountNumber);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()){
+                account = new Account(
+                        resultSet.getLong(resultSet.getString("account_number")),
+                        resultSet.getString("name"),
+                        resultSet.getLong("balance")
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return 0;
     }
 
