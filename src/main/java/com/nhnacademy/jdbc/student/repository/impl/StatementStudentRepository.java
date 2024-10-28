@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.text.html.Option;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
@@ -16,87 +17,86 @@ public class StatementStudentRepository implements StudentRepository {
     @Override
     public int save(Student student){
         //todo#1 insert student
-        int result = 0;
-        String sql = "INSERT INTO jdbc_students (id, name, gender, age, created_at) VALUES (?, ?, ?, ?, ?)";
+        String sql = String.format("insert into jdbc_students (id, name, gender,age,created_at) values ('%s','%s','%s','%d','%s')",
+                student.getId(),
+                student.getName(),
+                student.getGender(),
+                student.getAge(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
 
         try(Connection connection = DbUtils.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ) {
-            preparedStatement.setString(1,student.getId());
-            preparedStatement.setString(2,student.getName());
-            preparedStatement.setString(3,student.getGender().toString());
-            preparedStatement.setInt(4,student.getAge());
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss");
-            preparedStatement.setTimestamp(5,Timestamp.valueOf(student.getCreatedAt().format(formatter)));
-
-            result = preparedStatement.executeUpdate();
+            Statement statement = connection.createStatement();
+        ){
+            int result = statement.executeUpdate(sql);
+            log.debug("save-result:{}", result);
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return result;
     }
 
     @Override
     public Optional<Student> findById(String id){
         //todo#2 student 조회
-        Optional<Student> student = Optional.empty();
-        String sql = "SELECT * FROM jdbc_students WHERE id=?";
+        String sql = String.format("select id, name, gender,age from jdbc_students where id='%s'", id);
+
         try(Connection connection = DbUtils.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql);
         ) {
-            preparedStatement.setString(1,id);
-            ResultSet result = preparedStatement.executeQuery();
-            if (result.next()){
-                log.debug("test: {}",result.getString("id"));
-                student = Optional.of(new Student(
-                        result.getString("id"),
-                        result.getString("name"),
-                        Student.GENDER.valueOf(result.getString("gender")),
-                        result.getInt("age")
-                ));
+            if(rs.next()){
+                return Optional.of(
+                        new Student(
+                                rs.getString("id"),
+                                rs.getString("name"),
+                                Student.GENDER.valueOf(rs.getString("gender")),
+                                rs.getInt("age")
+                        )
+                );
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return student;
+
+        return Optional.empty();
     }
 
     @Override
     public int update(Student student){
         //todo#3 student 수정, name <- 수정합니다.
-        int result = 0;
-        String sql = "UPDATE jdbc_students SET id=?, name=?,gender=?,age=?,created_at=? WHERE id=?";
+        String sql = String.format("update jdbc_students set id='%s', name='%s', gender='%s', age='%d',created_at='%s' where id='%s'",
+                student.getId(),
+                student.getName(),
+                student.getGender().toString(),
+                student.getAge(),
+                student.getCreatedAt().toString(),
+                student.getId()
+                );
+        log.debug("sql:{}",sql);
         try(Connection connection = DbUtils.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ) {
-            preparedStatement.setString(1,student.getId());
-            preparedStatement.setString(2,student.getName());
-            preparedStatement.setString(3,student.getGender().toString());
-            preparedStatement.setInt(4,student.getAge());
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss");
-            preparedStatement.setTimestamp(5,Timestamp.valueOf(student.getCreatedAt().format(formatter)));
-            preparedStatement.setString(6,student.getId());
-
-            result = preparedStatement.executeUpdate();
+            Statement statement = connection.createStatement();
+        ){
+            int result = statement.executeUpdate(sql);
+            log.debug("updateUserPasswordByUserId : {}", result);
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return result;
     }
 
     @Override
     public int deleteById(String id){
        //todo#4 student 삭제
-        int result = 0;
-        String sql = "DELETE FROM jdbc_students WHERE id = ?";
+        String sql = String.format("delete from jdbc_students where id='%s'", id);
         try(Connection connection = DbUtils.getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        ) {
-            preparedStatement.setString(1,id);
-            result = preparedStatement.executeUpdate();
+            Statement statement = connection.createStatement();
+        ){
+            int result = statement.executeUpdate(sql);
+            log.debug("result:{}", result);
+            return result;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return result;
     }
 }
